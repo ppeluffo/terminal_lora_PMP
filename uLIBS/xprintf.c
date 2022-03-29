@@ -35,8 +35,8 @@ int i = 0;
 
 	memset(stdout_buff,'\0',PRINTF_BUFFER_SIZE);
 	va_start(args, fmt);
-	//vsnprintf( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
-    vsnprintf_( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
+	vsnprintf( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
+    //vsnprintf_( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
     va_end(args);
     i = frtos_write(fdTERM, (char *)stdout_buff, strlen((char *)stdout_buff) );
    

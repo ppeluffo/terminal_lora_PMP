@@ -51,17 +51,12 @@ uint8_t ticks = 0;
 	// loop
 	for( ;; )
 	{
+        kick_wdt(CMD_WDG_bp);
 		c = '\0';	// Lo borro para que luego del un CR no resetee siempre el timer.
 		// el read se bloquea 50ms. lo que genera la espera.
 		while ( frtos_read( fdTERM, (char *)&c, 1 ) == 1 ) {
             FRTOS_CMD_process(c);
         }
-        //if ( USART3_getChar( &c)) {
-        //   FRTOS_CMD_process(c); 
-        //}
-        
-        //xprintf("tkCMD  Counter=%d\r\n", counter++);
-        //vTaskDelay( ( TickType_t)( 10 / portTICK_PERIOD_MS ) );
 	}    
 }
 //------------------------------------------------------------------------------
@@ -119,8 +114,9 @@ static void cmdStatusFunction(void)
 
     // https://stackoverflow.com/questions/12844117/printing-defined-constants
     
-	//xprintf("\r\nSpymovil %s %s %s %s \r\n" , HW_MODELO, FRTOS_VERSION, FW_REV, FW_DATE);
-    xprintf("\r\nSpymovil V1.2\r\n");
+	//xprintf("\r\nSpymovil HW_MODELO" "FRTOS_VERSION" "FW_REV" "FW_DATE"\r\n" , );"
+    //xprintf("\r\nSpymovil %s\r\n" , HW_MODELO );
+    xprintf("\r\nSpymovil V1.3\r\n");
     xprintf("DAC=%d\r\n", systemVars.dac);
 }
 //------------------------------------------------------------------------------

@@ -121,6 +121,7 @@ void config_default(void);
 bool save_config_in_NVM(void);
 bool load_config_from_NVM(void);
 uint8_t checksum( uint8_t *s, uint16_t size );
+void kick_wdt( uint8_t bit_pos);
 
 int xprintf( const char *fmt, ...);
 void xputChar(unsigned char c);
@@ -135,6 +136,20 @@ struct {
     t_link_mode link_mode;
     uint8_t checksum;
 } systemVars;
+
+uint8_t sys_watchdog;
+
+#define CMD_WDG_bm 0x01
+#define CMD_WDG_bp    0
+#define CTL_WDG_bm 0x02
+#define CTL_WDG_bp    1
+#define DAC_WDG_bm 0x04
+#define DAC_WDG_bp    2
+
+#define WDG_bm 0x07
+
+#define WDG_INIT() ( sys_watchdog = WDG_bm )
+
 
 
 #endif	/* XC_HEADER_TEMPLATE_H */

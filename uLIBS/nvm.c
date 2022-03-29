@@ -13,11 +13,11 @@ void nvm_read_print_id(void)
 nvm_device_serial_id_t avr_id;
 
     NVM_ID_read( &avr_id );
-    xprintf_P(PSTR("AVR_ID: %0x%02x %0x%02x %0x%02x\r\n"), avr_id.devid0, avr_id.devid1, avr_id.devid2);
-    xprintf_P(PSTR("SIGNATURE: %0x%02x %0x%02x %0x%02x %0x%02x"), avr_id.sernum0, avr_id.sernum1, avr_id.sernum2, avr_id.sernum3);
-    xprintf_P(PSTR("%0x%02x %0x%02x %0x%02x %0x%02x"), avr_id.sernum4, avr_id.sernum5, avr_id.sernum6, avr_id.sernum7);
-    xprintf_P(PSTR("%0x%02x %0x%02x %0x%02x %0x%02x"), avr_id.sernum8, avr_id.sernum9, avr_id.sernum10, avr_id.sernum11);
-    xprintf_P(PSTR("%0x%02x %0x%02x %0x%02x %0x%02x\r\n"), avr_id.sernum12, avr_id.sernum13, avr_id.sernum14, avr_id.sernum15);
+    xprintf_P(PSTR("AVR_ID: 0x%02x 0x%02x 0x%02x\r\n"), avr_id.devid0, avr_id.devid1, avr_id.devid2);
+    xprintf_P(PSTR("SIGNATURE: 0x%02x 0x%02x 0x%02x 0x%02x "), avr_id.sernum0, avr_id.sernum1, avr_id.sernum2, avr_id.sernum3);
+    xprintf_P(PSTR("0x%02x 0x%02x 0x%02x 0x%02x "), avr_id.sernum4, avr_id.sernum5, avr_id.sernum6, avr_id.sernum7);
+    xprintf_P(PSTR("0x%02x 0x%02x 0x%02x 0x%02x "), avr_id.sernum8, avr_id.sernum9, avr_id.sernum10, avr_id.sernum11);
+    xprintf_P(PSTR("0x%02x 0x%02x 0x%02x 0x%02x\r\n"), avr_id.sernum12, avr_id.sernum13, avr_id.sernum14, avr_id.sernum15);
 
 }
 //------------------------------------------------------------------------------

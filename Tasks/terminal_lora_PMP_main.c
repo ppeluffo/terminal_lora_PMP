@@ -12,6 +12,10 @@
  * - Las funciones _P (prgspace) no funcionan
  * 
  * -----------------------------------------------------------------------------
+ * Version 1.3 @ 2022-03-29:
+ * -Implementa nvm_driver ( config load, config save, read id )
+ * 
+ * -----------------------------------------------------------------------------
  * Version 5: Implemento una funcion que lee la entrada y genera argumentos
  * En el tkComd (04) implemento que write escriba variables y con read poder 
  * leerlas.
@@ -114,15 +118,14 @@ int main(void) {
 
     system_init();
     frtos_open(fdTERM, 115200 );
-    //USART3_init();
-    //frtos_open(fdLORA,  57600 );
     frtos_open(fdI2C, 100 );
+    frtos_open(fdNVM, 0 );
     
     sem_SYSVars = xSemaphoreCreateMutexStatic( &SYSVARS_xMutexBuffer );
     
-    xHandle_tkDac = xTaskCreateStatic( tkDac, "DAC", tkDac_STACK_SIZE, (void *)1, tkDac_TASK_PRIORITY, tkDac_Buffer, &tkDac_Buffer_Ptr );
     xHandle_tkCtl = xTaskCreateStatic( tkCtl, "CTL", tkCtl_STACK_SIZE, (void *)1, tkCtl_TASK_PRIORITY, tkCtl_Buffer, &tkCtl_Buffer_Ptr );
     xHandle_tkCmd = xTaskCreateStatic( tkCmd, "CMD", tkCmd_STACK_SIZE, (void *)1, tkCmd_TASK_PRIORITY, tkCmd_Buffer, &tkCmd_Buffer_Ptr );
+    xHandle_tkDac = xTaskCreateStatic( tkDac, "DAC", tkDac_STACK_SIZE, (void *)1, tkDac_TASK_PRIORITY, tkDac_Buffer, &tkDac_Buffer_Ptr );
     //xHandle_tkLora = xTaskCreateStatic( tkLora, "LORA", tkLora_STACK_SIZE, (void *)1, tkLora_TASK_PRIORITY, tkLora_Buffer, &tkLora_Buffer_Ptr );
 
     /* Arranco el RTOS. */

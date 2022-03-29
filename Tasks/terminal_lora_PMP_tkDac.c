@@ -32,6 +32,7 @@ uint16_t dac;
 	for( ;; )
 	{
    
+        kick_wdt(DAC_WDG_bp);
 		vTaskDelay( ( TickType_t)( 1000 / portTICK_PERIOD_MS ) );
         
         while ( xSemaphoreTake( sem_SYSVars, ( TickType_t ) 5 ) != pdTRUE )
@@ -42,7 +43,7 @@ uint16_t dac;
             DAC_setVal(dac);
             //xprintf("New dac=%d\r\n", dac);
         } 
-        
+         
         xSemaphoreGive( sem_SYSVars );
 	}
 }
