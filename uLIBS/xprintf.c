@@ -38,6 +38,7 @@ int i = 0;
 	vsnprintf( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
     //vsnprintf_( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
     va_end(args);
+    
     i = frtos_write(fdTERM, (char *)stdout_buff, strlen((char *)stdout_buff) );
    
     xSemaphoreGive( sem_STDOUT );

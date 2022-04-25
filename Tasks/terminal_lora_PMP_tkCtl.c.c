@@ -22,9 +22,9 @@ void tkCtl(void * pvParameters)
 	// Esta es la primer tarea que arranca.
 
 ( void ) pvParameters;
-//uint16_t counter = 0;
+uint16_t counter = 0;
 
-	vTaskDelay( ( TickType_t)( 500 / portTICK_PERIOD_MS ) );
+	vTaskDelay( ( TickType_t)( 100 / portTICK_PERIOD_MS ) );
     xprintf("Starting tkCtl..\r\n");
     WDG_INIT();
 
@@ -34,7 +34,7 @@ void tkCtl(void * pvParameters)
 		vTaskDelay( ( TickType_t)( 5000 / portTICK_PERIOD_MS ) );
         led_flash();
         sys_watchdog_check();
-        //xprintf("Counter=%d\r\n", counter++);
+        xprintf("Counter=%d\r\n", counter++);
         //xprintf_P( PSTR("PGMCounter=%d\r\n"), counter++);
         
 	}
@@ -44,6 +44,10 @@ void sys_watchdog_check(void)
 {
     // El watchdog se inicializa en 7.
     // Cada tarea debe poner su bit en 0. Si alguna no puede, se resetea
+    
+    wdt_reset();
+    return;
+    
     
     if ( sys_watchdog != 0 ) {  
         xprintf_P(PSTR("tkCtl: reset by wdg [0x%02d]\r\n"), sys_watchdog );

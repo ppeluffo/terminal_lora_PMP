@@ -183,7 +183,7 @@ bool ret = false;
     }
 
 	// Indico que estan llegando datos
-	rB->arriving = true;
+	//rB->arriving = true;
 
 	return(ret);
 
@@ -195,6 +195,7 @@ bool rBchar_Pop( rBchar_s *rB, char *cChar )
 bool ret = false;
 
 	// Voy a leer un dato. Si estan llegando, espero.
+    /*
 	if ( rB->arriving == true ) {
 		rB->arriving = false;
 		vTaskDelay( ( TickType_t)50 );
@@ -203,6 +204,7 @@ bool ret = false;
 			return(false);
 		}
 	}
+     */
 
 	taskENTER_CRITICAL();
 
@@ -223,7 +225,7 @@ bool ret = false;
 	return(ret);
 }
 //------------------------------------------------------------------------------------
-bool rBchar_FromISR( rBchar_s *rB, char *cChar )
+bool rBchar_PopFromISR( rBchar_s *rB, char *cChar )
 {
 
 bool ret = false;
@@ -259,7 +261,7 @@ void rBchar_CreateStatic ( rBchar_s *rB, uint8_t *storage_area, uint16_t size  )
 	rB->tail = 0;	// end
 	rB->count = 0;
 	rB->length = size;
-	rB->arriving = false;
+	//rB->arriving = false;
 }
 //------------------------------------------------------------------------------------
 uint16_t rBchar_GetCount( rBchar_s *rB )

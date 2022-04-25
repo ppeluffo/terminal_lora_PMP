@@ -68,7 +68,10 @@ void lora_flush_RxBuffer(void);
 void lora_flash_led(void);
 void lora_print_RxBuffer(void);
 void lora_push_RxBuffer( char *c);
-void lora_print_RxBuffer_stats(void);
+void lora_write_cmd(void);
+
+
+void loraRx_process( char c);
 
 
 #ifdef	__cplusplus

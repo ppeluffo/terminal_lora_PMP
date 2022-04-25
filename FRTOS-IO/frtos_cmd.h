@@ -41,6 +41,10 @@ typedef void (*CmdlineFuncPtrType)(void);
 
 char *argv[16];
 
+// Estructura que define la linea de comandos.
+char cmdLine_buffer[MAX_INPUT_LENGTH];
+char cmdLine_History_buffer[MAX_INPUT_LENGTH];
+
 //void FRTOS_CMD_init( void (*xprintf_func)( char *s ), void (*xputchar_fun)( char s ) );
 //void FRTOS_CMD_init( void (*xputchar_func)( char s ), void (*xprintf_func)( char *s ) );
 void FRTOS_CMD_init(void);

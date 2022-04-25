@@ -84,12 +84,12 @@ extern "C" {
 #define tkDac_TASK_PRIORITY	 	( tskIDLE_PRIORITY + 1 )
 #define tkCtl_TASK_PRIORITY	 	( tskIDLE_PRIORITY + 1 )
 #define tkCmd_TASK_PRIORITY 	( tskIDLE_PRIORITY + 1 )
-#define tkLora_TASK_PRIORITY 	( tskIDLE_PRIORITY + 1 )
+#define tkRxLora_TASK_PRIORITY 	( tskIDLE_PRIORITY + 1 )
 
 #define tkDac_STACK_SIZE		384
 #define tkCtl_STACK_SIZE		384
 #define tkCmd_STACK_SIZE		384
-#define tkLora_STACK_SIZE		384
+#define tkRxLora_STACK_SIZE		384
 
 StaticTask_t tkDac_Buffer_Ptr;
 StackType_t tkDac_Buffer [tkDac_STACK_SIZE];
@@ -100,42 +100,61 @@ StackType_t tkCtl_Buffer [tkCtl_STACK_SIZE];
 StaticTask_t tkCmd_Buffer_Ptr;
 StackType_t tkCmd_Buffer [tkCmd_STACK_SIZE];
 
-StaticTask_t tkLora_Buffer_Ptr;
-StackType_t tkLora_Buffer [tkLora_STACK_SIZE];
+StaticTask_t tkRxLora_Buffer_Ptr;
+StackType_t tkRxLora_Buffer [tkRxLora_STACK_SIZE];
 
 SemaphoreHandle_t sem_SYSVars;
 StaticSemaphore_t SYSVARS_xMutexBuffer;
 #define MSTOTAKESYSVARSSEMPH ((  TickType_t ) 10 )
 
 
-TaskHandle_t xHandle_tkDac, xHandle_tkCtl, xHandle_tkCmd, xHandle_tkLora;
+TaskHandle_t xHandle_tkDac, xHandle_tkCtl, xHandle_tkCmd, xHandle_tkRxLora;
 
 void tkDac(void * pvParameters);
 void tkCtl(void * pvParameters);
 void tkCmd(void * pvParameters);
-void tkLora(void * pvParameters);
+void tkRxLora(void * pvParameters);
 
 void system_init();
 void reset(void);
-void config_default(void);
 bool save_config_in_NVM(void);
 bool load_config_from_NVM(void);
 uint8_t checksum( uint8_t *s, uint16_t size );
 void kick_wdt( uint8_t bit_pos);
+
+void config_default(void);
+bool config_modo(char *s_modo);
+bool config_timerpoll(char *s_timerpoll);
+bool config_txwindow(char *s_txwindow);
+bool config_ANoutputChannel(char *s_anOutputChannel);
+bool config_linktimeout(char *s_linkTimeout);
 
 int xprintf( const char *fmt, ...);
 void xputChar(unsigned char c);
 
 #define MAX_LENGTH 32
 
-typedef enum { CENTRAL=0, REMOTO } t_link_mode;
+typedef enum { CENTRAL=0, REMOTO } node_t;
+
+#define LINK_WINDOW_SIZE        10
+#define TIMOUT_INACTIVITY_LINK  15
+
+
+struct {
+    node_t tipo_nodo;                   // (M,S) Indica si es master o slave
+    uint16_t timerPoll;                 // (M) Cada cuanto lee la entrada y tx un frame
+    uint16_t tx_window_size;            // (M) Cantidad de frames a transmitir antes de verificar el link
+    uint8_t an_channel_for_convert;     // (S) Canal a convertir en la salida 4-20
+    uint16_t max_inactivity_link;       // (S) Tiempo maximo de inactividad del link
+    uint8_t checksum;
+} systemConf;
 
 struct {
     uint16_t dac;
-    uint16_t link_timeout;
-    t_link_mode link_mode;
-    uint8_t checksum;
+    uint16_t link_timeout;          // (S) Tiempo en secs sin actividad
+    uint16_t txmited_frames;        // (M) Cantidad de frames transmitidos
 } systemVars;
+
 
 uint8_t sys_watchdog;
 
@@ -145,6 +164,8 @@ uint8_t sys_watchdog;
 #define CTL_WDG_bp    1
 #define DAC_WDG_bm 0x04
 #define DAC_WDG_bp    2
+#define LRA_WDG_bm 0x08
+#define LRA_WDG_bp    3
 
 #define WDG_bm 0x07
 

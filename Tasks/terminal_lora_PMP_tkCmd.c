@@ -4,6 +4,7 @@
 #include "ina3221.h"
 #include "i2c.h"
 #include "nvm.h"
+#include "lora.h"
 
 
 static void cmdClsFunction(void);
@@ -69,10 +70,12 @@ static void cmdHelpFunction(void)
 		xprintf( "-write:\r\n");
         xprintf("   dac{val}\r\n");
         xprintf("   ina rconfValue\r\n");
+        xprintf("   lora {cmdString}\r\n");
         
     }  else if ( strcmp( strupr(argv[1]), "CONFIG") == 0 ) {
-		xprintf("-config:\r\n");
-		xprintf("   default,save,load\r\n");
+		xprintf_P(PSTR("-config:\r\n"));
+		xprintf_P(PSTR("   default,save,load\r\n"));
+        xprintf_P(PSTR("   modo {central,remoto}, timerpoll, txwindow, ANoutputChannel, linkTimeout\r\n"));
 
     }  else if ( strcmp( strupr(argv[1]), "READ") == 0 ) {
 		xprintf("-read:\r\n");
@@ -117,13 +120,31 @@ static void cmdStatusFunction(void)
 	//xprintf("\r\nSpymovil HW_MODELO" "FRTOS_VERSION" "FW_REV" "FW_DATE"\r\n" , );"
     //xprintf("\r\nSpymovil %s\r\n" , HW_MODELO );
     xprintf("\r\nSpymovil V1.3\r\n");
-    xprintf("DAC=%d\r\n", systemVars.dac);
+    xprintf_P(PSTR("Configuracion:\r\n"));
+    if ( systemConf.tipo_nodo == CENTRAL ) {
+        xprintf_P(PSTR(" Nodo: CENTRAL\r\n"));
+    } else {
+        xprintf_P(PSTR(" Nodo: REMOTO\r\n"));
+    }
+    xprintf_P(PSTR(" TimerPoll: %d(s)\r\n"), systemConf.timerPoll);
+    xprintf_P(PSTR(" TXwindowSize: %d\r\n"), systemConf.tx_window_size);
+    xprintf_P(PSTR(" ANchannelXconvert: %d\r\n"), systemConf.an_channel_for_convert);
+    xprintf_P(PSTR(" Timeout link %d(s):\r\n"), systemConf.max_inactivity_link);
+    
+    xprintf_P(PSTR("Estado:\r\n"));
+    xprintf(" DAC=%d\r\n", systemVars.dac);
 }
 //------------------------------------------------------------------------------
 static void cmdWriteFunction(void)
 {
 
     FRTOS_CMD_makeArgv();
+    
+    if ( strcmp( strupr(argv[1]),"LORA") == 0 ) {
+        lora_write_cmd();
+        pv_snprintfP_OK();
+        return;
+    }
     
     // INA
 	// write ina id rconfValue
@@ -181,6 +202,36 @@ static void cmdConfigFunction(void)
   
     FRTOS_CMD_makeArgv();
        
+    // modo {central,remoto}
+	if ( strcmp( strupr(argv[1]),"MODO") == 0  ) {
+        config_modo(argv[2]) ? pv_snprintfP_OK() : pv_snprintfP_ERR();
+        return;
+	}
+    
+    //timerpoll
+	if ( strcmp( strupr(argv[1]),"TIMERPOLL") == 0  ) {
+        config_timerpoll(argv[2]) ? pv_snprintfP_OK() : pv_snprintfP_ERR();
+        return;
+	}
+    
+    // txwindow
+    if ( strcmp( strupr(argv[1]),"TXWINDOW") == 0  ) {
+        config_txwindow(argv[2]) ? pv_snprintfP_OK() : pv_snprintfP_ERR();
+        return;
+	}
+    
+    // ANoutputChannel
+    if ( strcmp( strupr(argv[1]),"ANOUTPUTCHANNEL") == 0  ) {
+        config_ANoutputChannel(argv[2]) ? pv_snprintfP_OK() : pv_snprintfP_ERR();
+        return;
+	}
+    
+    // Linktimeout
+    if ( strcmp( strupr(argv[1]),"LINKTIMEOUT") == 0  ) {
+        config_linktimeout(argv[2]) ? pv_snprintfP_OK() : pv_snprintfP_ERR();
+        return;
+	}
+    
     // default
 	if ( strcmp( strupr(argv[1]),"DEFAULT") == 0  ) {
 		config_default();

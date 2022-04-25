@@ -17,9 +17,6 @@ uint8_t BDCMD_numCommands;	// number of commands currently registered
 
 CmdlineFuncPtrType CmdlineExecFunction;
 
-// Estructura que define la linea de comandos.
-static char cmdLine_buffer[MAX_INPUT_LENGTH];
-static char cmdLine_History_buffer[MAX_INPUT_LENGTH];
 
 static uint8_t cmdLine_ptr;
 

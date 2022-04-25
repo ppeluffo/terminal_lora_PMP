@@ -63,6 +63,13 @@ void reset(void)
 //------------------------------------------------------------------------------
 void config_default(void)
 {
+  
+    systemConf.tipo_nodo = CENTRAL;
+    systemConf.timerPoll = 60;
+    systemConf.tx_window_size = LINK_WINDOW_SIZE;
+    systemConf.an_channel_for_convert = 0;
+    systemConf.max_inactivity_link = TIMOUT_INACTIVITY_LINK;
+    
     systemVars.dac = 0;
     
 }
@@ -73,10 +80,10 @@ bool save_config_in_NVM(void)
 int8_t retVal;
 uint8_t cks;
 
-    cks = checksum ( (uint8_t *)&systemVars, ( sizeof(systemVars) - 1));
-    systemVars.checksum = cks;
+    cks = checksum ( (uint8_t *)&systemConf, ( sizeof(systemConf) - 1));
+    systemConf.checksum = cks;
     
-    retVal = NVM_EE_write( 0x00, (char *)&systemVars, sizeof(systemVars) );
+    retVal = NVM_EE_write( 0x00, (char *)&systemConf, sizeof(systemConf) );
     if (retVal == -1 )
         return(false);
     
@@ -89,13 +96,13 @@ bool load_config_from_NVM(void)
 
 uint8_t rd_cks, calc_cks;
     
-    NVM_EE_read( 0x00, (char *)&systemVars, sizeof(systemVars) );
-    rd_cks = systemVars.checksum;
+    NVM_EE_read( 0x00, (char *)&systemConf, sizeof(systemConf) );
+    rd_cks = systemConf.checksum;
     
-    calc_cks = checksum ( (uint8_t *)&systemVars, ( sizeof(systemVars) - 1));
+    calc_cks = checksum ( (uint8_t *)&systemConf, ( sizeof(systemConf) - 1));
     
     if ( calc_cks != rd_cks ) {
-		xprintf_P( PSTR("ERROR: Checksum systemVars failed: calc[0x%0x], read[0x%0x]\r\n"), calc_cks, rd_cks );
+		xprintf_P( PSTR("ERROR: Checksum systemConf failed: calc[0x%0x], read[0x%0x]\r\n"), calc_cks, rd_cks );
 		return(false);
 	}
     
@@ -127,5 +134,45 @@ void kick_wdt( uint8_t bit_pos)
 {
     sys_watchdog &= ~ (1 << bit_pos);
     
+}
+//------------------------------------------------------------------------------
+bool config_modo(char *s_modo)
+{
+    if ( strcmp( strupr( s_modo),"CENTRAL") == 0  ) {
+        systemConf.tipo_nodo = CENTRAL;
+        return(true);
+    }
+
+    if ( strcmp( strupr( s_modo),"REMOTO") == 0  ) {
+        systemConf.tipo_nodo = REMOTO;
+        return(true);
+    }
+    
+    return(false);
+    
+}
+//------------------------------------------------------------------------------
+bool config_timerpoll(char *s_timerpoll)
+{
+    systemConf.timerPoll = atoi(s_timerpoll);
+    return (true);
+}
+//------------------------------------------------------------------------------
+bool config_txwindow(char *s_txwindow)
+{
+    systemConf.tx_window_size = atoi(s_txwindow);
+    return (true);
+}
+//------------------------------------------------------------------------------
+bool config_ANoutputChannel(char *s_anOutputChannel)
+{
+    systemConf.an_channel_for_convert = atoi(s_anOutputChannel);
+    return (true);
+}
+//------------------------------------------------------------------------------
+bool config_linktimeout(char *s_linkTimeout)
+{
+    systemConf.max_inactivity_link = atoi(s_linkTimeout);
+    return(true);
 }
 //------------------------------------------------------------------------------

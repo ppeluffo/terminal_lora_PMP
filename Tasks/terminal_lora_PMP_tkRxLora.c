@@ -9,7 +9,7 @@
 #include "lora.h"
 
 //------------------------------------------------------------------------------
-void tkLora(void * pvParameters)
+void tkRxLora(void * pvParameters)
 {
 
 	/*
@@ -19,19 +19,23 @@ void tkLora(void * pvParameters)
 ( void ) pvParameters;
 uint8_t c = 0;
 
-	vTaskDelay( ( TickType_t)( 500 / portTICK_PERIOD_MS ) );
+	vTaskDelay( ( TickType_t)( 300 / portTICK_PERIOD_MS ) );
+    LORA_init();
    
     //lora_reset_on();
-	xprintf( "\r\n\r\nstarting tkLora..\r\n" );
+	xprintf( "Starting tkRxLora..\r\n" );
             
 	// loop
 	for( ;; )
 	{
+        kick_wdt(LRA_WDG_bp);
 		c = '\0';	// Lo borro para que luego del un CR no resetee siempre el timer.
 		// el read se bloquea 50ms. lo que genera la espera.
-		while ( frtos_read( fdLORA, (char *)&c, 1 ) == 1 ) {
-            lora_push_RxBuffer( (char *)&c );
-        }
+		//while ( frtos_read( fdLORA, (char *)&c, 1 ) == 1 ) {
+           //loraRx_process(c);
+           vTaskDelay( ( TickType_t)( 1 / portTICK_PERIOD_MS ) );
+        //}
+        
 	}   
 }
 //------------------------------------------------------------------------------

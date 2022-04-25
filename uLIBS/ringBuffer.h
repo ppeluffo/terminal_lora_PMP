@@ -24,7 +24,7 @@ typedef struct {
 	uint16_t tail;
 	uint16_t count;
 	uint16_t length;
-	bool arriving;
+	//bool arriving;
 } rBchar_s;
 
 void rBchar_CreateStatic ( rBchar_s *rB, uint8_t *storage_area, uint16_t size  );

@@ -60,8 +60,8 @@ uart_control_t uart_ctl_0, uart_ctl_3, uart_ctl_4;
 
 //-----------------------------------------------------------------------
 uart_control_t *drv_uart_init( uart_id_t iUART, uint32_t baudrate );
-void drv_uart_interruptOn(uart_id_t iUART);
-void drv_uart_interruptOff(uart_id_t iUART);
+//void drv_uart_interruptOn(uart_id_t iUART);
+//void drv_uart_interruptOff(uart_id_t iUART);
 
 void drv_uart_enable_tx_int( uart_id_t iUART );
 void drv_uart_disable_tx_int( uart_id_t iUART );

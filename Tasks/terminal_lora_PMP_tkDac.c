@@ -23,7 +23,7 @@ void tkDac(void * pvParameters)
 ( void ) pvParameters;
 uint16_t dac;
 
-	vTaskDelay( ( TickType_t)( 500 / portTICK_PERIOD_MS ) );
+	vTaskDelay( ( TickType_t)( 200 / portTICK_PERIOD_MS ) );
     xprintf("Starting tkDAC..\r\n");
 
     systemVars.dac = 0;

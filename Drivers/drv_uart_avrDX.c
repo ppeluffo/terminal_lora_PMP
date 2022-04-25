@@ -60,7 +60,7 @@ uart_control_t *pUart = NULL;
 		rBchar_CreateStatic( &uart_ctl_3.TXringBuffer, &uart3_txStorage[0], UART3_TXSTORAGE_SIZE );
 		// Asigno el identificador
 		uart_ctl_3.uart_id = iUART3;
-		uart_ctl_3.usart = &USART3;
+		uart_ctl_3.usart = &USART3;      
 		// Devuelvo la direccion de uart_gprs para que la asocie al dispositvo GPRS el frtos.
 		pUart = (uart_control_t *)&uart_ctl_3;
 		break; 
@@ -95,6 +95,7 @@ uart_control_t *pUart = NULL;
 	return(pUart);
 }
 //------------------------------------------------------------------------------
+/*
 void drv_uart_interruptOn(uart_id_t iUART)
 {
 	// Habilito la interrupcion TX del UART lo que hace que se ejecute la ISR_TX y
@@ -110,6 +111,7 @@ void drv_uart_interruptOff(uart_id_t iUART)
     drv_uart_disable_tx_int(iUART);
 
 }
+ */
 //------------------------------------------------------------------------------
 void drv_uart_enable_tx_int( uart_id_t iUART )
 {
@@ -250,27 +252,25 @@ void drv_uart_disable_rx( uart_id_t iUART )
 //------------------------------------------------------------------------------
 // USART3: Terminal 
 //------------------------------------------------------------------------------
-/*
 ISR(USART3_DRE_vect)
 {
     // ISR de transmisión.
-    // No la uso porque transmito por poleo. !!!
- 
+    
 char cChar = ' ';
 int8_t res = false;
 
-	res = rBchar_Pop( &uart_ctl_3.TXringBuffer, (char *)&cChar );
+	res = rBchar_PopFromISR( &uart_ctl_3.TXringBuffer, (char *)&cChar );
 
 	if( res == true ) {
 		// Send the next character queued for Tx
 		USART3.TXDATAL = cChar;
 	} else {
-		// Queue empty, nothing to send.
-		drv_uart_interruptOff(uart_ctl_3.uart_id);
+		// Queue empty, nothing to send.Apago la interrupcion
+        drv_uart_disable_tx_int(uart_ctl_3.uart_id);
+		//drv_uart_interruptOff(uart_ctl_3.uart_id);
 	}
 }
- */
-//------------------------------------------------------------------------------
+ //------------------------------------------------------------------------------
 ISR(USART3_RXC_vect)
 {
     // Driver ISR: Cuando se genera la interrupcion por RXIE, lee el dato
@@ -278,9 +278,7 @@ ISR(USART3_RXC_vect)
 char cChar = ' ';
 
 	cChar = USART3.RXDATAL;
- 	if( rBchar_PokeFromISR( &uart_ctl_3.RXringBuffer, &cChar ) ) {
-		taskYIELD();
-	}
+ 	rBchar_PokeFromISR( &uart_ctl_3.RXringBuffer, &cChar );
 }
 
 //------------------------------------------------------------------------------
