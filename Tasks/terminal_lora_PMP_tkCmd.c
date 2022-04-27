@@ -55,8 +55,9 @@ uint8_t ticks = 0;
         kick_wdt(CMD_WDG_bp);
 		c = '\0';	// Lo borro para que luego del un CR no resetee siempre el timer.
 		// el read se bloquea 50ms. lo que genera la espera.
-		while ( frtos_read( fdTERM, (char *)&c, 1 ) == 1 ) {
-            FRTOS_CMD_process(c);
+		while ( frtos_read( fdTERM, (char *)&c, 1 ) > 0 ) {
+            //FRTOS_CMD_process(c);
+            xputChar(c);
         }
 	}    
 }

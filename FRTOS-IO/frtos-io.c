@@ -151,8 +151,8 @@ int16_t frtos_uart_open( periferico_serial_port_t *xCom, file_descriptor_t fd, u
     
     frtos_ioctl(fd, ioctl_UART_ENABLE_RX, NULL );
     frtos_ioctl(fd, ioctl_UART_ENABLE_TX, NULL );
-    frtos_ioctl(fd, ioctl_UART_ENABLE_RX_INT, NULL );
-    frtos_ioctl(fd, ioctl_UART_ENABLE_TX_INT, NULL );
+    //frtos_ioctl(fd, ioctl_UART_ENABLE_RX_INT, NULL );
+    //frtos_ioctl(fd, ioctl_UART_ENABLE_TX_INT, NULL );
     
 	return(xCom->fd);
 
@@ -166,106 +166,86 @@ int16_t frtos_uart_write( periferico_serial_port_t *xCom, const char *pvBuffer, 
 	// Debe tomar el semaforo antes de trasmitir. Los semaforos los manejamos en la capa FreeRTOS
 	// y no en la de los drivers.
 
-/*
+
     USART3_sendString( (char *)pvBuffer);
     vTaskDelay( ( TickType_t)( 10 ) );
     return(0);
-*/
+
 int16_t wBytes = 0;
 char cChar = '\0';
 char *p = NULL;
 uint16_t bytes2tx = 0;
+bool exit_flag;
 
-	// Controlo no hacer overflow en la cola de trasmision
-	bytes2tx = xBytes;
 
-	// Trasmito.
 	// Espero que los buffers esten vacios. ( La uart se va limpiando al trasmitir )
 	while  ( rBchar_GetCount( &xCom->uart->TXringBuffer ) > 0 )
 		vTaskDelay( ( TickType_t)( 1 ) );
 
-    // Cargo el buffer en la cola de trasmision.
-	p = (char *)pvBuffer;
-
-	while(1) {
-		// Voy  alimentando el txRingBuffer de a uno.
-		cChar = *p;
-		bytes2tx--;
-		rBchar_Poke( &xCom->uart->TXringBuffer, &cChar  );
-		p++;
-		wBytes++;	// Cuento los bytes que voy trasmitiendo
-
-		// Si tengo un fin de pvBuffer, salgo
-		if ( *p == '\0') {
-			// Habilito a transmitir los datos que hayan en el buffer
-            drv_uart_enable_tx_int( xCom->uart->uart_id );
-			//drv_uart_interruptOn( xCom->uart->uart_id );
-			// Espero que se vacie
-			//while (  rBchar_GetCount( &xCom->uart->TXringBuffer ) > 0)
-			//	vTaskDelay( ( TickType_t)( 1 ) );
-			// Termino
-			break;
-		}
-
-		// Si la cola esta llena, empiezo a trasmitir y espero que se vacie.
-		if (  rBchar_ReachHighWaterMark( &xCom->uart->TXringBuffer ) ) {
-			// Habilito a trasmitir para que se vacie
-            drv_uart_enable_tx_int( xCom->uart->uart_id );
-			//drv_uart_interruptOn( xCom->uart->uart_id );
-			// Y espero que se haga mas lugar.
-			while ( ! rBchar_ReachHighWaterMark( &xCom->uart->TXringBuffer ) )
-				vTaskDelay( ( TickType_t)( 1 ) );
-		}
-
-		// Termine de cargar el pvBuffer
-		if ( bytes2tx == 0 ) {
-            drv_uart_enable_tx_int( xCom->uart->uart_id );
-			//drv_uart_interruptOn( xCom->uart->uart_id );
-			//while (  rBchar_GetCount( &xCom->uart->TXringBuffer ) > 0)
-			//	vTaskDelay( ( TickType_t)( 1 ) );
-			break;
-		}
-
-	}
     
+	// Controlo no hacer overflow en la cola de trasmision
+	bytes2tx = xBytes;
+    p = (char *)pvBuffer;
+    
+    // PASO 1: Almaceno todo lo que pueda en el txBuffer
+    while(1) {
+        cChar = *p++;
+		bytes2tx--;
+        wBytes++;	// Cuento los bytes que voy trasmitiendo
+		rBchar_Poke( &xCom->uart->TXringBuffer, &cChar  );
+        
+        // Condiciones de salida:
+        // No mas bytes.
+        if ( bytes2tx == 0 ) {
+            break;
+        }
+        // NULL
+        if ( *p == '\0') {
+            break;
+        }
+        // RINGBUFFER FULL
+        if (  rBchar_ReachHighWaterMark( &xCom->uart->TXringBuffer ) ) {
+            break;
+        }
+    }
+    
+    // PASO 2: Arranco a transmitir
+    rBchar_Pop( &xCom->uart->TXringBuffer, &cChar  );
+    drv_uart_SendByte( xCom->uart->uart_id, cChar);
+    drv_uart_enable_tx_int( xCom->uart->uart_id );
+    
+    // PASO 3: Si hay mas datos, monitoreo el rxBuffer para seguir alimentandolo
+    while(1) {
+        // Condiciones de salida:
+        // No mas bytes.
+        if ( bytes2tx == 0 ) {
+            break;
+        }
+        // NULL
+        if ( *p == '\0') {
+            break;
+        }   
+        
+        // Si hay datos y lugar los encolo
+        if ( rBchar_ReachLowWaterMark( &xCom->uart->TXringBuffer ) ) {
+            exit_flag = rBchar_ReachHighWaterMark( &xCom->uart->TXringBuffer ) || ( bytes2tx == 0);
+            while(!exit_flag) {
+                cChar = *p++;
+                bytes2tx--;
+                wBytes++;	// Cuento los bytes que voy trasmitiendo
+                rBchar_Poke( &xCom->uart->TXringBuffer, &cChar  );
+                exit_flag = rBchar_ReachHighWaterMark( &xCom->uart->TXringBuffer ) || ( bytes2tx == 0);
+            }
+        }
+        
+        // Espero( Simula sacando bytes)
+        vTaskDelay( ( TickType_t)( 1 ) );
+    }
+       
     // Y doy 1 ms para que se vacie el shift register.
 	vTaskDelay( ( TickType_t)( 1 ) );
 
-	return (wBytes);
-    /*
-	// Cargo el buffer en la cola de trasmision.
-	p = (char *)pvBuffer;
-	while (*p && (bytes2tx-- > 0) ) {
-
-		// Voy cargando la cola de a uno.
-		cChar = *p;
-		rBchar_Poke( &xCom->uart->TXringBuffer, &cChar  );
-		//rBufferPoke( &uart_usb.TXringBuffer, &cChar  );
-		p++;
-		wBytes++;	// Cuento los bytes que voy trasmitiendo
-
-		// Si la cola esta llena, empiezo a trasmitir y espero que se vacie.
-		if (  rBchar_ReachHighWaterMark( &xCom->uart->TXringBuffer ) ) {
-			// Habilito a trasmitir para que se vacie
-
-			drv_uart_interruptOn( xCom->uart->uart_id );
-
-			// Y espero que se haga mas lugar.
-			while ( ! rBchar_ReachLowWaterMark( &xCom->uart->TXringBuffer ) )
-				vTaskDelay( ( TickType_t)( 1 ) );
-		}
-	}
-
-	// Luego inicio la trasmision invocando la interrupcion.
-	drv_uart_interruptOn( xCom->uart->uart_id );
-    
-	// Espero que trasmita todo
-	while  ( rBchar_GetCount( &xCom->uart->TXringBuffer ) > 0 )
-		vTaskDelay( ( TickType_t)( 1 ) );
-
-	return (wBytes);
-    */
-    
+	return (wBytes);   
 }
 //------------------------------------------------------------------------------------
 int16_t frtos_uart_write_poll( periferico_serial_port_t *xCom, const char *pvBuffer, const uint16_t xBytes )
@@ -298,8 +278,8 @@ int timeout;
 		while( --timeout > 0) {
 
 			if ( USART_IsTXDataRegisterEmpty(xCom->uart->usart) ) {
-				USART_PutChar(xCom->uart->usart, cChar);
-                //USART3_sendChar(cChar);
+				//USART_PutChar(xCom->uart->usart, cChar);
+                USART3_sendChar(cChar);
 				p++;
 				wBytes++;	// Cuento los bytes que voy trasmitiendo
 				break;
@@ -377,10 +357,12 @@ int16_t frtos_uart_read( periferico_serial_port_t *xCom, char *pvBuffer, uint16_
 	// El timeout lo fijo con ioctl.
 
 int16_t xBytesReceived = 0U;
-TickType_t xTicksToWait = 0;
+TickType_t xTicksToWait = 10;
 TimeOut_t xTimeOut;
 
-	xTicksToWait = 10;
+     /* Initialize xTimeOut.  This records the time at which this function was
+        entered. 
+      */
 	vTaskSetTimeOutState( &xTimeOut );
 
 	// Are there any more bytes to be received?
@@ -389,19 +371,23 @@ TimeOut_t xTimeOut;
 
 		if( rBchar_Pop( &xCom->uart->RXringBuffer, &((char *)pvBuffer)[ xBytesReceived ] ) == true ) {
 			xBytesReceived++;
+            /*
+             Recibi un byte. Re-inicio el timeout.
+             */
+            vTaskSetTimeOutState( &xTimeOut );
 			//taskYIELD();
-            vTaskDelay( ( TickType_t)( 1 ) );
+            //vTaskDelay( ( TickType_t)( 1 ) );
 		} else {
 			// Espero xTicksToWait antes de volver a chequear
-			vTaskDelay( ( TickType_t)( xTicksToWait ) );
-		}
+			vTaskDelay( ( TickType_t)( 1 ) );
 
-		// Time out has expired ?
-		if( xTaskCheckForTimeOut( &xTimeOut, &xTicksToWait ) != pdFALSE )
-		{
-			break;
-		}
-	}
+            // Time out has expired ?
+            if( xTaskCheckForTimeOut( &xTimeOut, &xTicksToWait ) != pdFALSE )
+            {
+                break;
+            }
+        }
+    }
 
 	return ( xBytesReceived );
 

@@ -195,16 +195,6 @@ bool rBchar_Pop( rBchar_s *rB, char *cChar )
 bool ret = false;
 
 	// Voy a leer un dato. Si estan llegando, espero.
-    /*
-	if ( rB->arriving == true ) {
-		rB->arriving = false;
-		vTaskDelay( ( TickType_t)50 );
-		// Si siguen llegando, me voy
-		if ( rB->arriving == true ) {
-			return(false);
-		}
-	}
-     */
 
 	taskENTER_CRITICAL();
 
@@ -253,7 +243,7 @@ void rBchar_Flush( rBchar_s *rB )
 	rB->count = 0;
 	memset(rB->buff,'\0', rB->length );
 }
-//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void rBchar_CreateStatic ( rBchar_s *rB, uint8_t *storage_area, uint16_t size  )
 {
 	rB->buff = storage_area;
@@ -263,31 +253,31 @@ void rBchar_CreateStatic ( rBchar_s *rB, uint8_t *storage_area, uint16_t size  )
 	rB->length = size;
 	//rB->arriving = false;
 }
-//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 uint16_t rBchar_GetCount( rBchar_s *rB )
 {
 
 	return(rB->count);
 
 }
-//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 uint16_t rBchar_GetFreeCount( rBchar_s *rB )
 {
 
 	return(rB->length - rB->count);
 
 }
-//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool rBchar_ReachLowWaterMark( rBchar_s *rB)
 {
 bool retS = false;
 
-	if ( rB->count  < (int)(0.2 * rB->length  ))
+	if ( rB->count  < (int)(1 + 0.2 * rB->length  ))
 		retS = true;
 	return(retS);
 
 }
-//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 bool rBchar_ReachHighWaterMark( rBchar_s *rB )
 {
 bool retS = false;

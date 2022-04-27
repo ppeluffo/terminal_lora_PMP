@@ -10,7 +10,12 @@
  * 
  * PROBLEMAS:
  * - Las funciones _P (prgspace) no funcionan
- * 
+ *
+ * -----------------------------------------------------------------------------
+ * Version 1.0.1 @ 2022-04-25:
+ * Corrijo problemas del driver de la UART porque sigue perdiendo datos.
+ * - La trasmision la hago por interrupcion. Modifico la ISR y frtos_uart_write()
+ *  
  * -----------------------------------------------------------------------------
  * Version 1.3 @ 2022-03-29:
  * -Implementa nvm_driver ( config load, config save, read id )
@@ -126,6 +131,8 @@ int main(void) {
     //frtos_open(fdLORA, 57600 );
     //frtos_open(fdI2C, 100 );
     //frtos_open(fdNVM, 0 );
+    
+//    debug_uart();
     
     sem_SYSVars = xSemaphoreCreateMutexStatic( &SYSVARS_xMutexBuffer );
     

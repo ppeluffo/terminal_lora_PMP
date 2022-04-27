@@ -56,8 +56,8 @@ void FRTOS_CMD_process( char cRxedChar )
 	// Procesa el caracter recibido.
 	// Si es CR, ejecuta la funcion correspondiente
 	// Si no lo guarda ( editado ) en el buffer.
-
-
+    
+    
 	if ( VT100State == 2 ) {
 		// recibi ESC [ de modo que el proximo caracter es de control
 		// Solo proceso flecha arriba y abajo.

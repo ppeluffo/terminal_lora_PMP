@@ -25,17 +25,17 @@
 
 //-----------------------------------------------------------------------
 #define UART0_RXSTORAGE_SIZE	64
-#define UART0_TXSTORAGE_SIZE	8	// trasmito por poleo. Si uso interrupcion lo subo a 128
+#define UART0_TXSTORAGE_SIZE	16	// trasmito por poleo. Si uso interrupcion lo subo a 128
 uint8_t uart0_rxStorage[UART0_RXSTORAGE_SIZE];
 uint8_t uart0_txStorage[UART0_TXSTORAGE_SIZE];
 
 #define UART3_RXSTORAGE_SIZE	64
-#define UART3_TXSTORAGE_SIZE	8	// trasmito por poleo. Si uso interrupcion lo subo a 128
+#define UART3_TXSTORAGE_SIZE	16	// trasmito por poleo. Si uso interrupcion lo subo a 128
 uint8_t uart3_rxStorage[UART3_RXSTORAGE_SIZE];
 uint8_t uart3_txStorage[UART3_TXSTORAGE_SIZE];
 
 #define UART4_RXSTORAGE_SIZE	64
-#define UART4_TXSTORAGE_SIZE	8	// trasmito por poleo. Si uso interrupcion lo subo a 128
+#define UART4_TXSTORAGE_SIZE	16	// trasmito por poleo. Si uso interrupcion lo subo a 128
 uint8_t uart4_rxStorage[UART4_RXSTORAGE_SIZE];
 uint8_t uart4_txStorage[UART4_TXSTORAGE_SIZE];
 
@@ -60,8 +60,6 @@ uart_control_t uart_ctl_0, uart_ctl_3, uart_ctl_4;
 
 //-----------------------------------------------------------------------
 uart_control_t *drv_uart_init( uart_id_t iUART, uint32_t baudrate );
-//void drv_uart_interruptOn(uart_id_t iUART);
-//void drv_uart_interruptOff(uart_id_t iUART);
 
 void drv_uart_enable_tx_int( uart_id_t iUART );
 void drv_uart_disable_tx_int( uart_id_t iUART );
@@ -74,6 +72,8 @@ void drv_uart_disable_tx( uart_id_t iUART );
 
 void drv_uart_enable_rx( uart_id_t iUART );
 void drv_uart_disable_rx( uart_id_t iUART );
+
+void drv_uart_SendByte( uart_id_t iUART, uint8_t txByte);
 
 //-----------------------------------------------------------------------
 

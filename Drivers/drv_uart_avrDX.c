@@ -95,24 +95,6 @@ uart_control_t *pUart = NULL;
 	return(pUart);
 }
 //------------------------------------------------------------------------------
-/*
-void drv_uart_interruptOn(uart_id_t iUART)
-{
-	// Habilito la interrupcion TX del UART lo que hace que se ejecute la ISR_TX y
-	// esta vaya a la TXqueue y si hay datos los comienze a trasmitir.
-
-    drv_uart_enable_tx_int(iUART);
-
-}
-//------------------------------------------------------------------------------
-void drv_uart_interruptOff(uart_id_t iUART)
-{
-
-    drv_uart_disable_tx_int(iUART);
-
-}
- */
-//------------------------------------------------------------------------------
 void drv_uart_enable_tx_int( uart_id_t iUART )
 {
 	// Habilita la interrrupcion por DRE
@@ -250,8 +232,33 @@ void drv_uart_disable_rx( uart_id_t iUART )
 	}
 }
 //------------------------------------------------------------------------------
+void drv_uart_SendByte( uart_id_t iUART, uint8_t txByte)
+{
+	switch(iUART) {
+	case iUART0:
+		while (!(USART0.STATUS & USART_DREIF_bm)) {
+            ;
+        }
+        USART0.TXDATAL = txByte;
+		break;
+    case iUART3:
+		while (!(USART3.STATUS & USART_DREIF_bm)) {
+            ;
+        }
+        USART3.TXDATAL = txByte;
+		break;
+    case iUART4:
+		while (!(USART4.STATUS & USART_DREIF_bm)) {
+            ;
+        }
+        USART4.TXDATAL = txByte;
+		break;
+	}    
+}
+//------------------------------------------------------------------------------
 // USART3: Terminal 
 //------------------------------------------------------------------------------
+/*
 ISR(USART3_DRE_vect)
 {
     // ISR de transmisión.
@@ -270,6 +277,7 @@ int8_t res = false;
 		//drv_uart_interruptOff(uart_ctl_3.uart_id);
 	}
 }
+ */
  //------------------------------------------------------------------------------
 ISR(USART3_RXC_vect)
 {

@@ -176,3 +176,93 @@ bool config_linktimeout(char *s_linkTimeout)
     return(true);
 }
 //------------------------------------------------------------------------------
+void debug_uart(void)
+{
+
+int16_t wBytes = 0;
+char cChar = '\0';
+char *p = NULL;
+uint16_t bytes2tx = 0;
+uint8_t first = '\0';
+#define PRINTF_DEBUG_BUFFER_SIZE        32U
+uint8_t debug_stdout_buff[PRINTF_DEBUG_BUFFER_SIZE];
+
+rBchar_s debugTXringBuffer;
+#define DEBUG_UART_TXSTORAGE_SIZE	8                 
+uint8_t debug_uart_txStorage[DEBUG_UART_TXSTORAGE_SIZE];
+bool exit_flag;
+
+
+    // XPRINTF
+    memset(debug_stdout_buff,'\0',PRINTF_DEBUG_BUFFER_SIZE);
+    //strncpy( debug_stdout_buff, "PRUEBA DE BUFFERS\r\n", PRINTF_DEBUG_BUFFER_SIZE);
+    //strncpy( debug_stdout_buff, "A", PRINTF_DEBUG_BUFFER_SIZE);
+    //strncpy( debug_stdout_buff, "ABCDE", PRINTF_DEBUG_BUFFER_SIZE);
+    strncpy( debug_stdout_buff, "ABCDEFGHIJKL", PRINTF_DEBUG_BUFFER_SIZE);
+    
+    // FRTOS_UART_WRITE
+    rBchar_CreateStatic( &debugTXringBuffer, &debug_uart_txStorage[0], DEBUG_UART_TXSTORAGE_SIZE );
+    rBchar_Flush( &debugTXringBuffer );
+
+    	// Controlo no hacer overflow en la cola de trasmision
+	bytes2tx = strlen(debug_stdout_buff);
+	p = (char *)debug_stdout_buff;
+    
+    // PASO 1: Almaceno todo lo que pueda en el txBuffer
+    while(1) {
+        cChar = *p++;
+		bytes2tx--;
+        wBytes++;	// Cuento los bytes que voy trasmitiendo
+		rBchar_Poke( &debugTXringBuffer, &cChar  );
+        
+        // Condiciones de salida:
+        // No mas bytes.
+        if ( bytes2tx == 0 ) {
+            break;
+        }
+        // NULL
+        if ( *p == '\0') {
+            break;
+        }
+        // RINGBUFFER FULL
+        if (  rBchar_ReachHighWaterMark( &debugTXringBuffer ) ) {
+            break;
+        }
+    }
+    
+    // PASO 2: Arranco a transmitir
+    rBchar_Pop( &debugTXringBuffer, &cChar  );
+    // Transmito cChar
+    
+    // PASO 3: Si hay mas datos, monitoreo el rxBuffer para seguir alimentandolo
+    while(1) {
+        // Condiciones de salida:
+        // No mas bytes.
+        if ( bytes2tx == 0 ) {
+            break;
+        }
+        // NULL
+        if ( *p == '\0') {
+            break;
+        }   
+        
+        // Si hay datos y lugar los encolo
+        if ( rBchar_ReachLowWaterMark( &debugTXringBuffer ) ) {
+            exit_flag = rBchar_ReachHighWaterMark( &debugTXringBuffer ) || ( bytes2tx == 0);
+            while(!exit_flag) {
+                cChar = *p++;
+                bytes2tx--;
+                wBytes++;	// Cuento los bytes que voy trasmitiendo
+                rBchar_Poke( &debugTXringBuffer, &cChar  );
+                exit_flag = rBchar_ReachHighWaterMark( &debugTXringBuffer ) || ( bytes2tx == 0);
+            }
+        }
+        
+        // Espero( Simula sacando bytes)
+        rBchar_Pop( &debugTXringBuffer, &cChar  );
+    }
+
+    return;
+  
+}
+//------------------------------------------------------------------------------

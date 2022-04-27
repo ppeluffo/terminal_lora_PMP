@@ -129,8 +129,6 @@ bool config_txwindow(char *s_txwindow);
 bool config_ANoutputChannel(char *s_anOutputChannel);
 bool config_linktimeout(char *s_linkTimeout);
 
-int xprintf( const char *fmt, ...);
-void xputChar(unsigned char c);
 
 #define MAX_LENGTH 32
 
@@ -171,7 +169,8 @@ uint8_t sys_watchdog;
 
 #define WDG_INIT() ( sys_watchdog = WDG_bm )
 
-
+// DEBUG OPTIONS
+void debug_uart(void);
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 
