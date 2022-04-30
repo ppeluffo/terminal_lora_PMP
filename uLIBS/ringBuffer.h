@@ -3,6 +3,12 @@
  *
  *  Created on: 8 dic. 2018
  *      Author: pablo
+ * 
+ * Modificado el rBchar de acuerdo a 
+ * https://embedjournal.com/implementing-circular-buffer-embedded-c/
+ * El problema que vemos es que el codigo actual no esta funcionando bien
+ * y el buffer no queda bien controlado.
+ * 
  */
 
 #ifndef SRC_SPX_LIBS_L_RINGBUFFER_H_
@@ -20,11 +26,10 @@
 // Ring Buffers de Chars
 typedef struct {
 	uint8_t *buff;
-	uint16_t head;
-	uint16_t tail;
-	uint16_t count;
-	uint16_t length;
-	//bool arriving;
+	int16_t head;
+	int16_t tail;
+	int16_t count;
+	int16_t length;
 } rBchar_s;
 
 void rBchar_CreateStatic ( rBchar_s *rB, uint8_t *storage_area, uint16_t size  );
@@ -37,7 +42,8 @@ uint16_t rBchar_GetCount( rBchar_s *rB );
 uint16_t rBchar_GetFreeCount( rBchar_s *rB );
 bool rBchar_ReachLowWaterMark( rBchar_s *rB);
 bool rBchar_ReachHighWaterMark( rBchar_s *rB );
-
+bool rBchar_isFull( rBchar_s *rB );
+void rBchar_fill(rBchar_s *rB );
 //--------------------------------------------------------------------------------------------
 // Ring Buffers de Estructuras
 typedef struct {

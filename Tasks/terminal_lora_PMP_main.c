@@ -12,9 +12,16 @@
  * - Las funciones _P (prgspace) no funcionan
  *
  * -----------------------------------------------------------------------------
- * Version 1.0.1 @ 2022-04-25:
+ * Version 1.0.1 @ 2022-04-27:
+ * Probamos con solo tkCtl.( watchdog reset).
+ * La UART3 la configuro con frtos_open y la transmision con USART3_sendString().
+ * NO pierde datos!!.
+ * 
+ * Cambio en xprintf el vsnprintf para que use strlen en vez de sizeof.No funciona!!
+ * 
  * Corrijo problemas del driver de la UART porque sigue perdiendo datos.
- * - La trasmision la hago por interrupcion. Modifico la ISR y frtos_uart_write()
+ * Redefino el driver de UARTs y FRTOS-IO para las uarts.
+ * La transmision ahora es por poleo.
  *  
  * -----------------------------------------------------------------------------
  * Version 1.3 @ 2022-03-29:
@@ -132,13 +139,11 @@ int main(void) {
     //frtos_open(fdI2C, 100 );
     //frtos_open(fdNVM, 0 );
     
-//    debug_uart();
-    
     sem_SYSVars = xSemaphoreCreateMutexStatic( &SYSVARS_xMutexBuffer );
     
     xHandle_tkCtl = xTaskCreateStatic( tkCtl, "CTL", tkCtl_STACK_SIZE, (void *)1, tkCtl_TASK_PRIORITY, tkCtl_Buffer, &tkCtl_Buffer_Ptr );
- //   xHandle_tkCmd = xTaskCreateStatic( tkCmd, "CMD", tkCmd_STACK_SIZE, (void *)1, tkCmd_TASK_PRIORITY, tkCmd_Buffer, &tkCmd_Buffer_Ptr );
- //   xHandle_tkDac = xTaskCreateStatic( tkDac, "DAC", tkDac_STACK_SIZE, (void *)1, tkDac_TASK_PRIORITY, tkDac_Buffer, &tkDac_Buffer_Ptr );
+    xHandle_tkCmd = xTaskCreateStatic( tkCmd, "CMD", tkCmd_STACK_SIZE, (void *)1, tkCmd_TASK_PRIORITY, tkCmd_Buffer, &tkCmd_Buffer_Ptr );
+    xHandle_tkDac = xTaskCreateStatic( tkDac, "DAC", tkDac_STACK_SIZE, (void *)1, tkDac_TASK_PRIORITY, tkDac_Buffer, &tkDac_Buffer_Ptr );
  //   xHandle_tkRxLora = xTaskCreateStatic( tkRxLora, "RXLA", tkRxLora_STACK_SIZE, (void *)1, tkRxLora_TASK_PRIORITY, tkRxLora_Buffer, &tkRxLora_Buffer_Ptr );
 
     /* Arranco el RTOS. */

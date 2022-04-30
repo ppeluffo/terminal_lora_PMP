@@ -24,58 +24,20 @@
 #define USART_SET_BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 * (float)BAUD_RATE)) + 0.5);
 
 //-----------------------------------------------------------------------
-#define UART0_RXSTORAGE_SIZE	64
-#define UART0_TXSTORAGE_SIZE	16	// trasmito por poleo. Si uso interrupcion lo subo a 128
-uint8_t uart0_rxStorage[UART0_RXSTORAGE_SIZE];
-uint8_t uart0_txStorage[UART0_TXSTORAGE_SIZE];
 
-#define UART3_RXSTORAGE_SIZE	64
-#define UART3_TXSTORAGE_SIZE	16	// trasmito por poleo. Si uso interrupcion lo subo a 128
-uint8_t uart3_rxStorage[UART3_RXSTORAGE_SIZE];
-uint8_t uart3_txStorage[UART3_TXSTORAGE_SIZE];
+#define UART3_TXSIZE	8	// trasmito por poleo. Si uso interrupcion lo subo a 128
+uint8_t uart3_txBuffer[UART3_TXSIZE];
 
-#define UART4_RXSTORAGE_SIZE	64
-#define UART4_TXSTORAGE_SIZE	16	// trasmito por poleo. Si uso interrupcion lo subo a 128
-uint8_t uart4_rxStorage[UART4_RXSTORAGE_SIZE];
-uint8_t uart4_txStorage[UART4_TXSTORAGE_SIZE];
+#define UART3_RXSIZE	64	// 
+uint8_t uart3_rxBuffer[UART3_RXSIZE];
 
+rBchar_s TXRB_uart3, RXRB_uart3;
 
-// Enumenerador de los puertos fisicos.
-typedef enum {
-	iUART0 = 0,
-    iUART3,
-    iUART4,
-} uart_id_t;
-
-// Estructura generica de una UART
-typedef struct {
-	uart_id_t uart_id;			// Identificador de la uart fisico
-	rBchar_s TXringBuffer;	// ringbuffer de trasmision
-	rBchar_s RXringBuffer;	// ringbuffer de recepcion.
-	USART_t *usart;
-} uart_control_t;
-
-// Creo las uart's en memoria.
-uart_control_t uart_ctl_0, uart_ctl_3, uart_ctl_4;
+void drv_uart3_init(uint32_t baudrate );
 
 //-----------------------------------------------------------------------
-uart_control_t *drv_uart_init( uart_id_t iUART, uint32_t baudrate );
 
-void drv_uart_enable_tx_int( uart_id_t iUART );
-void drv_uart_disable_tx_int( uart_id_t iUART );
 
-void drv_uart_enable_rx_int( uart_id_t iUART );
-void drv_uart_disable_rx_int( uart_id_t iUART );
-
-void drv_uart_enable_tx( uart_id_t iUART );
-void drv_uart_disable_tx( uart_id_t iUART );
-
-void drv_uart_enable_rx( uart_id_t iUART );
-void drv_uart_disable_rx( uart_id_t iUART );
-
-void drv_uart_SendByte( uart_id_t iUART, uint8_t txByte);
-
-//-----------------------------------------------------------------------
 
 
 #endif /* SRC_SPX_DRIVERS_DRV_UART_SPX_H_ */

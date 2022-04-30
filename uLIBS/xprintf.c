@@ -1,11 +1,9 @@
 
-
-
 #include "xprintf.h"
 #include "string.h"
 #include "stdio.h"
 #include "frtos-io.h"
-#include "printf.h"
+//#include "printf.h"
 #include "semphr.h"
 
 
@@ -35,10 +33,9 @@ int i = 0;
 
 	memset(stdout_buff,'\0',PRINTF_BUFFER_SIZE);
 	va_start(args, fmt);
-	vsnprintf( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
-    //vsnprintf_( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
+    //vsnprintf( (char *)stdout_buff,strlen(stdout_buff),fmt,args);
+    vsnprintf( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
     va_end(args);
-    
     i = frtos_write(fdTERM, (char *)stdout_buff, strlen((char *)stdout_buff) );
    
     xSemaphoreGive( sem_STDOUT );
@@ -66,6 +63,7 @@ int i;
 	// Ahora tengo en stdout_buff formateado para imprimir
 	memset(stdout_buff,'\0',PRINTF_BUFFER_SIZE);
 	va_start(args, fmt);
+    //vsnprintf_P( (char *)stdout_buff, strlen(stdout_buff),fmt, args);
 	vsnprintf_P( (char *)stdout_buff, sizeof(stdout_buff),fmt, args);
     va_end(args);
 	i = frtos_write(fdTERM, (char *)stdout_buff, strlen((char *)stdout_buff) );
@@ -94,6 +92,7 @@ int i = -1;
 	// Ahora tengo en stdout_buff formateado para imprimir
 	memset(stdout_buff,'\0',PRINTF_BUFFER_SIZE);
 	va_start(args, fmt);   
+    //vsnprintf( (char *)stdout_buff,strlen(stdout_buff),fmt,args);
     vsnprintf( (char *)stdout_buff,sizeof(stdout_buff),fmt,args);
     va_end(args);
 	i = frtos_write(fd, (char *)stdout_buff, strlen((char *)stdout_buff) );

@@ -22,6 +22,7 @@ void tkDac(void * pvParameters)
 
 ( void ) pvParameters;
 uint16_t dac;
+//uint16_t counter_dac = 0;
 
 	vTaskDelay( ( TickType_t)( 200 / portTICK_PERIOD_MS ) );
     xprintf("Starting tkDAC..\r\n");
@@ -36,14 +37,16 @@ uint16_t dac;
 		vTaskDelay( ( TickType_t)( 1000 / portTICK_PERIOD_MS ) );
         
         while ( xSemaphoreTake( sem_SYSVars, ( TickType_t ) 5 ) != pdTRUE )
-  			taskYIELD();
+  			vTaskDelay( ( TickType_t)( 1 ) );
         
 		if ( systemVars.dac != dac ) {
             dac = systemVars.dac;
             DAC_setVal(dac);
-            //xprintf("New dac=%d\r\n", dac);
+            xprintf("New dac=%d\r\n", dac);
         } 
-         
+        
+        //xprintf_P( PSTR("DAC_Counter=%d\r\n"), counter_dac++);
+        
         xSemaphoreGive( sem_SYSVars );
 	}
 }

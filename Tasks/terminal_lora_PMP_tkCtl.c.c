@@ -21,7 +21,7 @@ void tkCtl(void * pvParameters)
 	// Esta es la primer tarea que arranca.
 
 ( void ) pvParameters;
-uint16_t counter = 0;
+//uint16_t counter = 0;
 
 	vTaskDelay( ( TickType_t)( 100 / portTICK_PERIOD_MS ) );
     xprintf("Starting tkCtl..\r\n");
@@ -33,9 +33,8 @@ uint16_t counter = 0;
 		vTaskDelay( ( TickType_t)( 5000 / portTICK_PERIOD_MS ) );
         led_flash();
         sys_watchdog_check();
-        xprintf("Counter=%d\r\n", counter++);
+        //xprintf("Counter=%d\r\n", counter++);
         //xprintf_P( PSTR("PGMCounter=%d\r\n"), counter++);
-        
 	}
 }
 //------------------------------------------------------------------------------

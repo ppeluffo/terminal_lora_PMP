@@ -22,263 +22,53 @@
 #include "drv_uart_avrDX.h"
 
 //------------------------------------------------------------------------------
-uart_control_t *drv_uart_init( uart_id_t iUART, uint32_t baudrate )
-{
-	// El puerto del USB es PORTD:
-	// TXD pin = high
-	// TXD pin output
-	// baudrate / frame format
-	// Enable TX,RX
-
-uart_control_t *pUart = NULL;
-
-	switch(iUART) {
-	case iUART0:
-		// Abro el puerto serial y fijo su velocidad
-        PORTA.DIR &= ~PIN1_bm;
-        PORTA.DIR |= PIN0_bm;
-        USART0.BAUD = (uint16_t)USART_SET_BAUD_RATE(baudrate);    
-        USART0.CTRLC = USART_CHSIZE_8BIT_gc | USART_PMODE_DISABLED_gc | USART_SBMODE_1BIT_gc;
-		// Inicializo los ringBuffers que manejan el puerto. Son locales al driver.
-		rBchar_CreateStatic( &uart_ctl_0.RXringBuffer, &uart0_rxStorage[0], UART0_RXSTORAGE_SIZE );
-		rBchar_CreateStatic( &uart_ctl_0.TXringBuffer, &uart0_txStorage[0], UART0_TXSTORAGE_SIZE );
-		// Asigno el identificador
-		uart_ctl_0.uart_id = iUART0;
-		uart_ctl_0.usart = &USART0;
-		// Devuelvo la direccion de uart_gprs para que la asocie al dispositvo GPRS el frtos.
-		pUart = (uart_control_t *)&uart_ctl_0;
-		break;
-        
-	case iUART3:
-		// Abro el puerto serial y fijo su velocidad
-        PORTB.DIR &= ~PIN1_bm;
-        PORTB.DIR |= PIN0_bm;
-        USART3.BAUD = (uint16_t)USART_SET_BAUD_RATE(baudrate);     
-        USART3.CTRLC = USART_CHSIZE_8BIT_gc | USART_PMODE_DISABLED_gc | USART_SBMODE_1BIT_gc;
-		// Inicializo los ringBuffers que manejan el puerto. Son locales al driver.
-		rBchar_CreateStatic( &uart_ctl_3.RXringBuffer, &uart3_rxStorage[0], UART3_RXSTORAGE_SIZE );
-		rBchar_CreateStatic( &uart_ctl_3.TXringBuffer, &uart3_txStorage[0], UART3_TXSTORAGE_SIZE );
-		// Asigno el identificador
-		uart_ctl_3.uart_id = iUART3;
-		uart_ctl_3.usart = &USART3;      
-		// Devuelvo la direccion de uart_gprs para que la asocie al dispositvo GPRS el frtos.
-		pUart = (uart_control_t *)&uart_ctl_3;
-		break; 
-        
-    case iUART4:
-		// Abro el puerto serial y fijo su velocidad
-        PORTE.DIR &= ~PIN1_bm;
-        PORTE.DIR |= PIN0_bm;
-        USART4.BAUD = (uint16_t)USART_SET_BAUD_RATE(baudrate);   
-        USART4.CTRLC = USART_CHSIZE_8BIT_gc | USART_PMODE_DISABLED_gc | USART_SBMODE_1BIT_gc;
-		// Inicializo los ringBuffers que manejan el puerto. Son locales al driver.
-		rBchar_CreateStatic( &uart_ctl_4.RXringBuffer, &uart4_rxStorage[0], UART4_RXSTORAGE_SIZE );
-		rBchar_CreateStatic( &uart_ctl_4.TXringBuffer, &uart4_txStorage[0], UART4_TXSTORAGE_SIZE );
-		// Asigno el identificador
-		uart_ctl_4.uart_id = iUART4;
-		uart_ctl_4.usart = &USART4;
-		// Devuelvo la direccion de uart_gprs para que la asocie al dispositvo GPRS el frtos.
-		pUart = (uart_control_t *)&uart_ctl_4;
-        
-		break; 
-	}
-
-    // Lo hacemos por ioctl !!
-    // Habilitamos el modulo de TX y RX
-    //drv_uart_enable_tx(iUART);  // CTRLB:USART_TXEN
-    //drv_uart_enable_rx(iUART);  // CTRLB:USART_RXEN
-    //
-    // Habilitamos la interrupcin de TX y RX
-    //drv_uart_enable_tx_int(iUART);  // CTRLA: USART_TXCIE
-    //drv_uart_enable_rx_int(iUART);  // CTRLA: USART_RXCIE
-    //
-	return(pUart);
-}
-//------------------------------------------------------------------------------
-void drv_uart_enable_tx_int( uart_id_t iUART )
-{
-	// Habilita la interrrupcion por DRE
-
-	switch(iUART) {
-	case iUART0:
-		USART0.CTRLA |= USART_DREIE_bm;
-		break;
-    case iUART3:
-		USART3.CTRLA |= USART_DREIE_bm;
-		break;
-    case iUART4:
-		USART4.CTRLA |= USART_DREIE_bm;
-		break;        
-	}
-}
-//------------------------------------------------------------------------------
-void drv_uart_disable_tx_int( uart_id_t iUART )
-{
-	// Deshabilita la interrrupcion por DRE
-
-	switch(iUART) {
-	case iUART0:
-		USART0.CTRLA &= USART_DREIE_bm;
-		break;
-    case iUART3:
-		USART3.CTRLA &= USART_DREIE_bm;
-		break;
-    case iUART4:
-		USART4.CTRLA &= USART_DREIE_bm;
-		break;
-	}
-}
-//------------------------------------------------------------------------------
-void drv_uart_enable_rx_int( uart_id_t iUART )
-{
-	// Habilita la interrrupcion por RXC
-
-	switch(iUART) {
-	case iUART0:
-		USART0.CTRLA |= USART_RXCIE_bm;
-		break;
-    case iUART3:
-		USART3.CTRLA |= USART_RXCIE_bm;
-		break;
-    case iUART4:
-		USART4.CTRLA |= USART_RXCIE_bm;
-		break;
-	}
-}
-//------------------------------------------------------------------------------
-void drv_uart_disable_rx_int( uart_id_t iUART )
-{
-	// Deshabilita la interrrupcion por RXC
-
-	switch(iUART) {
-	case iUART0:
-		USART0.CTRLA &= ~USART_RXCIE_bm;
-		break;
-    case iUART3:
-		USART3.CTRLA &= ~USART_RXCIE_bm;
-		break;
-    case iUART4:
-		USART4.CTRLA &= ~USART_RXCIE_bm;
-		break;
-	}
-}
-//------------------------------------------------------------------------------
-void drv_uart_enable_tx( uart_id_t iUART )
-{
-	// Enable USART transmitter
-
-	switch(iUART) {
-	case iUART0:
-		USART0.CTRLB |= USART_TXEN_bm;
-		break;
-    case iUART3:
-		USART3.CTRLB |= USART_TXEN_bm;
-		break;
-    case iUART4:
-		USART4.CTRLB |= USART_TXEN_bm;
-		break;
-	}
-
-}
-//------------------------------------------------------------------------------
-void drv_uart_disable_tx( uart_id_t iUART )
-{
-	// Disable USART transmitter
-
-	switch(iUART) {
-	case iUART0:
-		USART0.CTRLB &= ~USART_TXEN_bm;
-		break;
-    case iUART3:
-		USART3.CTRLB &= ~USART_TXEN_bm;
-		break;
-    case iUART4:
-		USART4.CTRLB &= ~USART_TXEN_bm;
-		break;
-	}
-}
-//------------------------------------------------------------------------------
-void drv_uart_enable_rx( uart_id_t iUART )
-{
-	// Enable USART receiver
-
-	switch(iUART) {
-	case iUART0:
-		USART0.CTRLB |= USART_RXEN_bm;
-		break;
-    case iUART3:
-		USART3.CTRLB |= USART_RXEN_bm;
-		break;
-    case iUART4:
-		USART4.CTRLB |= USART_RXEN_bm;
-		break;
-	}
-}
-//------------------------------------------------------------------------------
-void drv_uart_disable_rx( uart_id_t iUART )
-{
-	// Disable USART receiver
-
-	switch(iUART) {
-	case iUART0:
-		USART0.CTRLB &= ~USART_RXEN_bm;
-		break;
-    case iUART3:
-		USART3.CTRLB &= ~USART_RXEN_bm;
-		break;
-    case iUART4:
-		USART4.CTRLB &= ~USART_RXEN_bm;
-		break;
-	}
-}
-//------------------------------------------------------------------------------
-void drv_uart_SendByte( uart_id_t iUART, uint8_t txByte)
-{
-	switch(iUART) {
-	case iUART0:
-		while (!(USART0.STATUS & USART_DREIF_bm)) {
-            ;
-        }
-        USART0.TXDATAL = txByte;
-		break;
-    case iUART3:
-		while (!(USART3.STATUS & USART_DREIF_bm)) {
-            ;
-        }
-        USART3.TXDATAL = txByte;
-		break;
-    case iUART4:
-		while (!(USART4.STATUS & USART_DREIF_bm)) {
-            ;
-        }
-        USART4.TXDATAL = txByte;
-		break;
-	}    
-}
-//------------------------------------------------------------------------------
 // USART3: Terminal 
+//------------------------------------------------------------------------------
+void drv_uart3_init(uint32_t baudrate )
+{
+    
+    PORTB.DIR &= ~PIN1_bm;
+    PORTB.DIR |= PIN0_bm;
+    USART3.BAUD = (uint16_t)USART_SET_BAUD_RATE(baudrate);     
+    USART3.CTRLC = USART_CHSIZE_8BIT_gc | USART_PMODE_DISABLED_gc | USART_SBMODE_1BIT_gc;
+    
+    // Habilito el TX y el RX
+    USART3.CTRLB |= USART_TXEN_bm;
+    USART3.CTRLB |= USART_RXEN_bm;
+    
+    TXRB_uart3.buff = uart3_txBuffer;
+	TXRB_uart3.head = 0;	// start
+	TXRB_uart3.tail = 0;	// end
+	TXRB_uart3.count = 0;
+	TXRB_uart3.length = UART3_TXSIZE;
+    
+    RXRB_uart3.buff = uart3_rxBuffer;
+	RXRB_uart3.head = 0;	// start
+	RXRB_uart3.tail = 0;	// end
+	RXRB_uart3.count = 0;
+	RXRB_uart3.length = UART3_RXSIZE;
+}
 //------------------------------------------------------------------------------
 /*
 ISR(USART3_DRE_vect)
 {
-    // ISR de transmisión.
+    // ISR de transmisión de la UART3 ( TERM )
     
 char cChar = ' ';
 int8_t res = false;
 
-	res = rBchar_PopFromISR( &uart_ctl_3.TXringBuffer, (char *)&cChar );
+	res = rBchar_PopFromISR( &TXRB_uart3, (char *)&cChar );
 
 	if( res == true ) {
 		// Send the next character queued for Tx
 		USART3.TXDATAL = cChar;
 	} else {
 		// Queue empty, nothing to send.Apago la interrupcion
-        drv_uart_disable_tx_int(uart_ctl_3.uart_id);
-		//drv_uart_interruptOff(uart_ctl_3.uart_id);
+        USART3.CTRLB &= ~USART_TXEN_bm;
 	}
 }
  */
- //------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 ISR(USART3_RXC_vect)
 {
     // Driver ISR: Cuando se genera la interrupcion por RXIE, lee el dato
@@ -286,41 +76,6 @@ ISR(USART3_RXC_vect)
 char cChar = ' ';
 
 	cChar = USART3.RXDATAL;
- 	rBchar_PokeFromISR( &uart_ctl_3.RXringBuffer, &cChar );
-}
-
-//------------------------------------------------------------------------------
-// USART4: LORA
-//------------------------------------------------------------------------------
-/*
-ISR(USART4_DRE_vect)
-{
-
-char cChar = ' ';
-int8_t res = false;
-
-	res = rBchar_Pop( &uart_ctl_4.TXringBuffer, (char *)&cChar );
-
-	if( res == true ) {
-		// Send the next character queued for Tx
-		USART4.TXDATAL = cChar;
-	} else {
-		// Queue empty, nothing to send.
-		drv_uart_interruptOff(uart_ctl_4.uart_id);
-	}
+ 	rBchar_PokeFromISR( &RXRB_uart3, &cChar );
 }
 //------------------------------------------------------------------------------
-ISR(USART4_RXC_vect)
-{
-
-char cChar = ' ';
-
-	cChar = USART4.RXDATAL;
- 	if( rBchar_PokeFromISR( &uart_ctl_4.RXringBuffer, &cChar ) ) {
-		taskYIELD();
-	}
-}
-//------------------------------------------------------------------------------
-*/
-
-

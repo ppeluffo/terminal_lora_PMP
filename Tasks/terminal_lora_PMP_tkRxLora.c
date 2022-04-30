@@ -17,7 +17,7 @@ void tkRxLora(void * pvParameters)
      */
 
 ( void ) pvParameters;
-uint8_t c = 0;
+//uint8_t c = 0;
 
 	vTaskDelay( ( TickType_t)( 300 / portTICK_PERIOD_MS ) );
     LORA_init();
@@ -29,7 +29,7 @@ uint8_t c = 0;
 	for( ;; )
 	{
         kick_wdt(LRA_WDG_bp);
-		c = '\0';	// Lo borro para que luego del un CR no resetee siempre el timer.
+		//c = '\0';	// Lo borro para que luego del un CR no resetee siempre el timer.
 		// el read se bloquea 50ms. lo que genera la espera.
 		//while ( frtos_read( fdLORA, (char *)&c, 1 ) == 1 ) {
            //loraRx_process(c);

@@ -142,97 +142,106 @@ uint16_t rBstruct_GetFreeCount( rBstruct_s *rB )
 bool rBchar_Poke( rBchar_s *rB, char *cChar )
 {
 
-bool ret = false;
+int next;
 
 	taskENTER_CRITICAL();
 
-	// Si el buffer esta vacio ajusto los punteros
-	if( rB->count == 0) {
-		rB->head = rB->tail = 0;
-	}
-
-	if ( rB->count < rB->length ) {
-		rB->buff[rB->head] = *cChar;
-		++rB->count;
-		// Avanzo en modo circular
-		rB->head = ( rB->head  + 1 ) % ( rB->length );
-		ret = true;
+    // Buffer lleno
+    if ( rB->count == rB->length) {
+        taskEXIT_CRITICAL();
+        return(false);        
     }
+    
+    // Guardo
+    rB->buff[rB->head] = *cChar;
+    (rB->count)++;
+
+    // Avanzo en modo circular
+    next = rB->head + 1;
+    if ( next >= rB->length) {
+        next = 0;
+    }
+    rB->head = next;
 
 	taskEXIT_CRITICAL();
-	return(ret);
+	return(true);
 
 }
 //------------------------------------------------------------------------------------
 bool rBchar_PokeFromISR( rBchar_s *rB, char *cChar )
 {
+int next;
 
-bool ret = false;
-
-	// Si el buffer esta vacio ajusto los punteros
-	if( rB->count == 0) {
-		rB->head = rB->tail = 0;
-	}
-
-	if ( rB->count < rB->length ) {
-		rB->buff[rB->head] = *cChar;
-		++rB->count;
-		// Avanzo en modo circular
-		rB->head = ( rB->head  + 1 ) % ( rB->length );
-		ret = true;
+   // Buffer lleno
+    if ( rB->count == rB->length) {
+        return(false);        
     }
+    
+    // Guardo
+    rB->buff[rB->head] = *cChar;
+    (rB->count)++;
 
-	// Indico que estan llegando datos
-	//rB->arriving = true;
+    // Avanzo en modo circular
+    next = rB->head + 1;
+    if ( next >= rB->length) {
+        next = 0;
+    }
+    rB->head = next;
 
-	return(ret);
+	return(true);
 
 }
 //------------------------------------------------------------------------------------
 bool rBchar_Pop( rBchar_s *rB, char *cChar )
 {
 
-bool ret = false;
+int next;
 
-	// Voy a leer un dato. Si estan llegando, espero.
+	// Voy a leer un dato
 
 	taskENTER_CRITICAL();
 
-	//  Si el buffer esta vacio retorno.
-	if( rB->count == 0) {
-		rB->head = rB->tail = 0;
-		taskEXIT_CRITICAL();
-		return(ret);
-	}
+    if ( rB->count == 0 ) {    // Esta vacio
+        taskEXIT_CRITICAL();
+		return(false);
+    }
+    
+    // Avanzo tail en modo circular    
+    *cChar = rB->buff[rB->tail];
+	(rB->count)--;
+    next = rB->tail + 1;
+    if ( next >= rB->length) {
+        next = 0;
+    }
+    rB->tail = next;
+    
+    taskEXIT_CRITICAL();
+    return (true);
+    
 
-	*cChar = rB->buff[rB->tail];
-	--rB->count;
-	// Avanzo en modo circular
-	rB->tail = ( rB->tail  + 1 ) % ( rB->length );
-	ret = true;
-
-	taskEXIT_CRITICAL();
-	return(ret);
 }
 //------------------------------------------------------------------------------------
 bool rBchar_PopFromISR( rBchar_s *rB, char *cChar )
 {
+    
+int next;
 
-bool ret = false;
+	// Voy a leer un dato
 
-	//  Si el buffer esta vacio retorno.
-	if( rB->count == 0) {
-		rB->head = rB->tail = 0;
-		return(ret);
-	}
-
-	*cChar = rB->buff[rB->tail];
-	--rB->count;
-	// Avanzo en modo circular
-	rB->tail = ( rB->tail  + 1 ) % ( rB->length );
-	ret = true;
-
-	return(ret);
+    if ( rB->count == 0 ) {    // Esta vacio
+		return(false);
+    }
+    
+    // Avanzo tail en modo circular    
+    *cChar = rB->buff[rB->tail];
+	(rB->count)--;
+    next = rB->tail + 1;
+    if ( next >= rB->length) {
+        next = 0;
+    }
+    rB->tail = next;
+    
+    return (true);
 }
 //------------------------------------------------------------------------------------
 void rBchar_Flush( rBchar_s *rB )
@@ -251,20 +260,32 @@ void rBchar_CreateStatic ( rBchar_s *rB, uint8_t *storage_area, uint16_t size  )
 	rB->tail = 0;	// end
 	rB->count = 0;
 	rB->length = size;
-	//rB->arriving = false;
 }
 //------------------------------------------------------------------------------
 uint16_t rBchar_GetCount( rBchar_s *rB )
 {
 
-	return(rB->count);
+uint16_t count;
+
+    taskENTER_CRITICAL();
+    count = rB->count;
+    taskEXIT_CRITICAL();
+    
+	return(count);
 
 }
 //------------------------------------------------------------------------------
 uint16_t rBchar_GetFreeCount( rBchar_s *rB )
 {
 
-	return(rB->length - rB->count);
+uint16_t freecount;
+
+    taskENTER_CRITICAL();
+    freecount = rB->length - rB->count;
+    taskEXIT_CRITICAL();
+    
+	return(freecount);
+
 
 }
 //------------------------------------------------------------------------------
@@ -272,8 +293,11 @@ bool rBchar_ReachLowWaterMark( rBchar_s *rB)
 {
 bool retS = false;
 
-	if ( rB->count  < (int)(1 + 0.2 * rB->length  ))
+    taskENTER_CRITICAL();
+	if ( rB->count  <= 3 )
 		retS = true;
+    
+    taskEXIT_CRITICAL();
 	return(retS);
 
 }
@@ -282,10 +306,26 @@ bool rBchar_ReachHighWaterMark( rBchar_s *rB )
 {
 bool retS = false;
 
-	if ( rB->count  > (int)(0.8 * rB->length ))
+    taskENTER_CRITICAL();
+	if ( rB->count  >= ( 5 ) )
 		retS = true;
+    
+    taskEXIT_CRITICAL();
 
 	return(retS);
 
 }
-//------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+bool rBchar_isFull( rBchar_s *rB )
+{
+bool retS = false;
+
+    taskENTER_CRITICAL();
+    
+	if ( rB->count  == rB->length )
+		retS = true;
+    taskEXIT_CRITICAL();
+	return(retS);
+
+}
+//------------------------------------------------------------------------------

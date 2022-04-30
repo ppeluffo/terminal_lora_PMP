@@ -39,14 +39,6 @@ typedef enum {
     fdNVM,
 } file_descriptor_t;
 
-// Estructuctura generica de un periferico tipo serial port.
-typedef struct {
-	file_descriptor_t fd;
-	SemaphoreHandle_t xBusSemaphore;		//
-	uint8_t xBlockTime;						// ticks to block in read operations. Set by ioctl
-	uart_control_t *uart;					// puntero a una estructura con los miembros adecuados al periferico
-                                            // La uart pertenece al driver. El periferico la apunta.
-} periferico_serial_port_t;
 
 // Estructuctura generica de un periferico tipo bus i2c.
 typedef struct {
@@ -69,7 +61,6 @@ typedef struct {
 } periferico_nvm_t;
 
 // Perifericos real.
-periferico_serial_port_t xComTERM, xComLORA;
 periferico_i2c_port_t xBusI2C;
 periferico_nvm_t xNVM;
 
@@ -107,27 +98,28 @@ StaticSemaphore_t NVM_xMutexBuffer;
 #define I2C_RD_ERROR	1
 #define I2C_WR_ERROR	2
 
-
-
 int16_t frtos_open( file_descriptor_t fd, uint32_t flags);
-int16_t frtos_uart_open( periferico_serial_port_t *xCom, file_descriptor_t fd, uart_id_t uart_id, uint32_t flags);
+void frtos_open_uart3(uint32_t baudrate);
 int16_t frtos_i2c_open( periferico_i2c_port_t *xI2c, file_descriptor_t fd, StaticSemaphore_t *i2c_semph, uint32_t flags);
 int16_t frtos_nvm_open( periferico_nvm_t *xNVM, file_descriptor_t fd, StaticSemaphore_t *i2c_semph, uint32_t flags);
 
 int16_t frtos_write( file_descriptor_t fd ,const char *pvBuffer, const uint16_t xBytes );
-int16_t frtos_uart_write( periferico_serial_port_t *xCom, const char *pvBuffer, const uint16_t xBytes );
-int16_t frtos_uart_write_poll( periferico_serial_port_t *xCom, const char *pvBuffer, const uint16_t xBytes );
+int16_t frtos_uart3_write( const char *pvBuffer, const uint16_t xBytes );
 int16_t frtos_i2c_write( periferico_i2c_port_t *xI2c, const char *pvBuffer, const uint16_t xBytes );
 int16_t frtos_nvm_write( periferico_nvm_t *xNVM, const char *pvBuffer, const uint16_t xBytes );
 
 int16_t frtos_ioctl( file_descriptor_t fd, uint32_t ulRequest, void *pvValue );
-int16_t frtos_uart_ioctl( periferico_serial_port_t *xCom, uint32_t ulRequest, void *pvValue );
+int16_t frtos_ioctl_uart3( uint32_t ulRequest, void *pvValue );
 int16_t frtos_i2c_ioctl( periferico_i2c_port_t *xI2c, uint32_t ulRequest, void *pvValue );
 int16_t frtos_nvm_ioctl( periferico_nvm_t *xNVM, uint32_t ulRequest, void *pvValue );
 
 int16_t frtos_read( file_descriptor_t fd , char *pvBuffer, uint16_t xBytes );
-int16_t frtos_uart_read( periferico_serial_port_t *xCom, char *pvBuffer, uint16_t xBytes );
+int16_t frtos_read_uart3( char *pvBuffer, uint16_t xBytes );
 int16_t frtos_i2c_read( periferico_i2c_port_t *xI2c, char *pvBuffer, const uint16_t xBytes );
 int16_t frtos_nvm_read( periferico_nvm_t *xNVM, char *pvBuffer, const uint16_t xBytes );
+
+
+
+
 
 #endif /* SRC_FRTOS_IO_FRTOS_IO_H_ */
